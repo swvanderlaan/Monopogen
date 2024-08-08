@@ -283,6 +283,8 @@ def main():
 	# new code -- 2024-08-08
 	parser_preProcess.add_argument('-v', '--verbose', action='store_true',
 								help="Increase output verbosity.")
+	parser_preProcess.add_argument('-d', '--debug', action='store_true',
+								help="For debugging, specifically for installed tools.")
 	parser_preProcess.set_defaults(func=preProcess)
 
 	# Add the subcommands for germline -- 2024-08-08
@@ -377,7 +379,8 @@ def main():
 		samtools = os.path.abspath(location_samtools)
 		# if args.verbose:
 		print(f"> samtools location:", samtools)
-		print(f"> samtools version:", subprocess.check_output([samtools, '--version']).strip().decode('utf-8'))
+		if args.debug:
+			print(f"> samtools version:", subprocess.check_output([samtools, '--version']).strip().decode('utf-8'))
 	except subprocess.CalledProcessError:
 		print("ERROR: [samtools] not found.")
 
@@ -386,7 +389,8 @@ def main():
 		bcftools = os.path.abspath(location_bcftools)
 		# if args.verbose:
 		print(f"> bcftools location:", bcftools)
-		print(f"> bcftools version:", subprocess.check_output([bcftools, '--version']).strip().decode('utf-8'))
+		if args.debug:
+			print(f"> bcftools version:", subprocess.check_output([bcftools, '--version']).strip().decode('utf-8'))
 	except subprocess.CalledProcessError:
 		print("ERROR: [bcftools] not found.")
 
@@ -395,7 +399,8 @@ def main():
 		bgzip = os.path.abspath(location_bgzip)
 		# if args.verbose:
 		print(f"> bgzip location:", bgzip)
-		print(f"> bgzip version:", subprocess.check_output([bgzip, '--version']).strip().decode('utf-8'))
+		if args.debug:
+			print(f"> bgzip version:", subprocess.check_output([bgzip, '--version']).strip().decode('utf-8'))
 	except subprocess.CalledProcessError:
 		print("ERROR: [bgzip] not found.")
 
@@ -404,7 +409,8 @@ def main():
 		java = os.path.abspath(location_java)
 		# if args.verbose:
 		print(f"> java location:", java)
-		print(f"> java version:", subprocess.check_output([java, '-version']).strip().decode('utf-8'))
+		if args.debug:
+			print(f"> java version:", subprocess.check_output([java, '-version']).strip().decode('utf-8'))
 	except subprocess.CalledProcessError:
 		print("ERROR: [java] not found.")
 	
