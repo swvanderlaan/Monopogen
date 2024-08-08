@@ -282,7 +282,7 @@ def main():
 								help="Number of threads used for SNVs calling. Default is 1.")
 	# new code -- 2024-08-08
 	parser_preProcess.add_argument('-v', '--verbose', action='store_true',
-								help="Increase output verbosity")
+								help="Increase output verbosity.")
 	parser_preProcess.set_defaults(func=preProcess)
 
 	# Add the subcommands for germline -- 2024-08-08
@@ -310,7 +310,7 @@ def main():
 								choices=['TRUE','FALSE'],
 								help="Generate the job scripts only. The jobs will not be run.")
 	# new code -- 2024-08-08
-	parser_preProcess.add_argument('-v', '--verbose', action='store_true',
+	parser_germline.add_argument('-v', '--verbose', action='store_true',
 								help="Increase output verbosity")
 	parser_germline.set_defaults(func=germline)
 
@@ -336,7 +336,7 @@ def main():
 	parser_somatic.add_argument('-g', '--reference', required= True, 
 								help="The human genome reference used for alignment")
 	# new code -- 2024-08-08
-	parser_preProcess.add_argument('-v', '--verbose', action='store_true',
+	parser_somatic.add_argument('-v', '--verbose', action='store_true',
 								help="Increase output verbosity")
 	parser_somatic.set_defaults(func=somatic)
 
