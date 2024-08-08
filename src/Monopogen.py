@@ -3,6 +3,7 @@
 The main interface of monopgen
 """
 
+# Importing the required libraries -- 2024-08-08
 import argparse
 import sys
 import os
@@ -23,7 +24,7 @@ from somatic import *
 import multiprocessing as mp
 from multiprocessing import Pool
 
-
+# Setting the library path -- 2024-08-08
 LIB_PATH = os.path.abspath(
 	os.path.join(os.path.dirname(os.path.realpath(__file__)), "pipelines/lib"))
 
@@ -45,8 +46,7 @@ handler.setFormatter(logging.Formatter(
 	'[{asctime}] {levelname:8s} {filename} {message}', style='{'))
 logger.addHandler(handler)
 
-
-
+# Function to print errors if any exist -- 2024-08-08
 def error_check(all, output, step):
 		job_fail = 0
 		for id in all:
@@ -58,8 +58,7 @@ def error_check(all, output, step):
 			logger.error("Failed! See instructions above.")
 			exit(1)
 
-
-
+# Function to perform germline variant calling -- 2024-08-08
 def germline(args):
 	logger.info("Performing germline variant calling...")
 	print_parameters_given(args)
@@ -91,7 +90,12 @@ def germline(args):
 				for s in p:
 					N_sample = N_sample + 1
 
-			imputation_vcf = args.imputation_panel + "CCDG_14151_B01_GRM_WGS_2020-08-05_" + record[0] + ".filtered.shapeit2-duohmm-phased.vcf.gz"
+			# Original code
+			# CCDG_14151_B01_GRM_WGS_2020-08-05_chr1.filtered.shapeit2-duohmm-phased.vcf.gz - old data
+			# imputation_vcf = args.imputation_panel + "CCDG_14151_B01_GRM_WGS_2020-08-05_" + record[0] + ".filtered.shapeit2-duohmm-phased.vcf.gz"
+			# Updated code -- 2024-08-08
+			# 1kGP_high_coverage_Illumina.chr6.filtered.SNV_INDEL_SV_phased_panel.vcf.gz - new data
+			imputation_vcf = args.imputation_panel + "1kGP_high_coverage_Illumina." + record[0] + ".filtered.SNV_INDEL_SV_phased_panel.vcf.gz"
 			cmd1 = samtools + " mpileup -b" + bam_filter + " -f "  + args.reference  + " -r " +  jobid + " -q 20 -Q 20 -t DP -d 10000000 -v "
 			cmd1 = cmd1 + " | " + bcftools + " view " + " | "  + bcftools  + " norm -m-both -f " + args.reference 
 			cmd1 = cmd1 + " | grep -v \"<X>\" | grep -v INDEL |" + bgzip +   " -c > " + args.out + "/germline/" +  jobid + ".gl.vcf.gz" 
@@ -180,24 +184,39 @@ def somatic(args):
 			result = pool.map(LDrefinement, joblst)
 		error_check(all = chr_lst, output = result, step = "LDrefinement")
 
-
-
-
+# Function to perform pre-processing of bam files -- 2024-08-08
 def preProcess(args):
+	if args.verbose:
+		print(f"Performing data preprocess before variant calling...")
 	logger.info("Performing data preprocess before variant calling...")
 	print_parameters_given(args)
 
 	assert os.path.isfile(args.bamFile), "The bam file {} cannot be found!".format(args.bamFile)
-	out = args.out
-	os.system("mkdir -p " + out )
-	os.system("mkdir -p " + out +  "/Bam")
+
+	# Create necessary directories -- 2024-08-08
+	if args.verbose:
+		print(f"\n> Checking the existence of the necessary output directories. If they do not exist, they will be created.")
+	# out = args.out
+	# os.system("mkdir -p " + out )
+	# os.system("mkdir -p " + out +  "/Bam")
+	if args.out:
+		os.makedirs(args.out, exist_ok=True)
+		if args.verbose:
+			print(f"  - Created output directory: {args.out}")
+		os.makedirs(os.path.join(args.out, 'Bam'), exist_ok=True)
+		if args.verbose:
+			print(f"  - Created directory to store filtered [.bam]-files: {os.path.join(args.out, 'Bam')}")
+	else:
+		print("Output directory not specified!")
 
 	sample=[]
 	with open(args.bamFile) as f_in:
 			for line in f_in:
 				record = line.strip().split(",")
 				sample.append(record[0])
-				#logger.debug("Checking sample {}".format(record[0]))
+				if args.verbose:
+					print(f"> Checking sample {record[0]}")
+				logger.debug("Checking sample {}".format(record[0]))
 				assert len(record)==2, "Every line has to have exactly 2 comma-delimited columns! Line with sample name {} does not satisify this requiremnt!".format(record[0])
 				assert os.path.isfile(record[1]), "Bam file {} cannot be found!".format(record[1])
 				assert os.path.isfile(record[1]+".bai"), "Bam file {} has not been indexed!".format(record[1])
@@ -207,6 +226,8 @@ def preProcess(args):
 	with open(args.bamFile) as f_in:
 			for line in f_in:
 				record = line.strip().split(",")
+				if args.verbose:
+					print(f"> PreProcessing sample {record[0]}")
 				logger.debug("PreProcessing sample {}".format(record[0]))
 				for chr in range(1, 23):
 					para_single  =  dict(chr = "chr" + str(chr), 
@@ -220,13 +241,17 @@ def preProcess(args):
 	# output the bam file list 
 
 	# generate postProcess bam files 
+	if args.verbose:
+		print(f"> Creating the bam file list for each chromosome.")
 	for chr in range(1, 23):
+		if args.verbose:
+			print(f"   - processing chromsome {chr}")
 		bamlist = open(args.out + "/Bam/chr" +  str(chr) +  ".filter.bam.lst","w")
 		for s in sample:
 			bamlist.write(args.out+"/Bam/"+s+"_chr"+str(chr)+".filter.bam\n")
 		bamlist.close()
 		
-
+# Main function -- 2024-08-08
 def main():
 	parser = argparse.ArgumentParser(
 		description="""Monopogen: SNV calling from single cell sequencing
@@ -241,22 +266,26 @@ def main():
 	# every subcommand needs user config file
 	common_parser = argparse.ArgumentParser(add_help=False)
 
+	# Add the subcommands for preProcess -- 2024-08-08
 	parser_preProcess = subparsers.add_parser('preProcess', parents=[common_parser],
-		help='Preprocess of bam files including removing reads with high alignment mismatches',
+		help='Preprocess of bam files including removing reads with high alignment mismatches. The maximum mismatch is set by default at 3.',
 		formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 	parser_preProcess.add_argument('-b', '--bamFile', required=True,
-								help="The bam file for the study sample, the bam file should be sorted. If there are multiple samples, each row with each sample") 
+								help="The bam file for the study sample, the bam file should be sorted. If there are multiple samples, each row with each sample. Require.") 
 	parser_preProcess.add_argument('-o', '--out', required= False,
-								help="The output director")
+								help="The output directory. The output will be saved in the output directory. Required.")
 	parser_preProcess.add_argument('-a', '--app-path', required=True,
-								help="The app library paths used in the tool")
+								help="The app library paths used in the tool. The app library paths should include beagle. Also see wiki for installation instructions of relevant tools (samtools, bcftools, bgzip, and java). Required.")
 	parser_preProcess.add_argument('-m', '--max-mismatch', required=False, type=int, default=3,
-								help="The maximal alignment mismatch allowed in one reads for variant calling")
+								help="The maximal alignment mismatch allowed in one reads for variant calling. Default is 3.")
 	parser_preProcess.add_argument('-t', '--nthreads', required=False, type=int, default=1,
-								help="Number of threads used for SNVs calling")
+								help="Number of threads used for SNVs calling. Default is 1.")
+	# new code -- 2024-08-08
+	parser_preProcess.add_argument('-v', '--verbose', action='store_true',
+								help="Increase output verbosity")
 	parser_preProcess.set_defaults(func=preProcess)
 
-
+	# Add the subcommands for germline -- 2024-08-08
 	parser_germline = subparsers.add_parser('germline', parents=[common_parser],
 		help='Germline variant discovery, genotype calling from single cell data',
 		formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -280,8 +309,12 @@ def main():
 	parser_germline.add_argument('-n', '--norun', required=False, default="FALSE", 
 								choices=['TRUE','FALSE'],
 								help="Generate the job scripts only. The jobs will not be run.")
+	# new code -- 2024-08-08
+	parser_preProcess.add_argument('-v', '--verbose', action='store_true',
+								help="Increase output verbosity")
 	parser_germline.set_defaults(func=germline)
 
+	# Add the subcommands for somatic -- 2024-08-08
 	parser_somatic = subparsers.add_parser('somatic', parents=[common_parser],
 		help='Somatic variant calling from single cell sequencing',
 		formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -302,37 +335,88 @@ def main():
 								help="Run germline variant calling step by step")
 	parser_somatic.add_argument('-g', '--reference', required= True, 
 								help="The human genome reference used for alignment")
+	# new code -- 2024-08-08
+	parser_preProcess.add_argument('-v', '--verbose', action='store_true',
+								help="Increase output verbosity")
 	parser_somatic.set_defaults(func=somatic)
 
 	args = parser.parse_args()
 
 	if args.subcommand is None:
 		# if no command is specified, print help and exit
-		print("Please specify one subcommand! Exiting!")
+		print("Please specify one subcommand ('preProcess', 'germline' or 'somatic')! Exiting!")
 		print("-"*80)
 		parser.print_help()
 		exit(1)
 
 	# execute subcommand-specific function
-
-	
 	if args.subcommand == "somatic":
 		args.out = args.input_folder
 
+	# Original code
+	# global out, samtools, bcftools, bgzip, java, beagle 
+	# out = os.path.abspath(args.out)
+	# samtools  = os.path.abspath(args.app_path) + "/samtools" 
+	# bcftools = os.path.abspath(args.app_path) + "/bcftools"
+	# bgzip = os.path.abspath(args.app_path) + "/bgzip"
+	# java =  "java"
+	# beagle = os.path.abspath(args.app_path) + "/beagle.27Jul16.86a.jar"
+
+	# Updated code -- 2024-08-08
+	# set paths for tools
 	global out, samtools, bcftools, bgzip, java, beagle 
 	out = os.path.abspath(args.out)
-	samtools  = os.path.abspath(args.app_path) + "/samtools" 
-	bcftools = os.path.abspath(args.app_path) + "/bcftools"
-	bgzip = os.path.abspath(args.app_path) + "/bgzip"
-	java =  "java"
-	beagle = os.path.abspath(args.app_path) + "/beagle.27Jul16.86a.jar"
+	
+	# Execute the shell command to find the location of samtools, bcftools, bgzip, and java
+	# if args.verbose:
+	print(f"Checking the existence of the necessary tools.")
+	try:
+		location_samtools = subprocess.check_output(['which', 'samtools']).strip().decode('utf-8')
+		# If you're on Windows, you may need to use where command instead of which.
+		# location = subprocess.check_output(['where', 'samtools']).strip().decode('utf-8')
+		samtools = os.path.abspath(location_samtools)
+		# if args.verbose:
+		print(f"> samtools location:", samtools)
+		print(f"> samtools version:", subprocess.check_output([samtools, '--version']).strip().decode('utf-8'))
+	except subprocess.CalledProcessError:
+		print("ERROR: [samtools] not found.")
 
+	try:
+		location_bcftools = subprocess.check_output(['which', 'bcftools']).strip().decode('utf-8')
+		bcftools = os.path.abspath(location_bcftools)
+		# if args.verbose:
+		print(f"> bcftools location:", bcftools)
+		print(f"> bcftools version:", subprocess.check_output([bcftools, '--version']).strip().decode('utf-8'))
+	except subprocess.CalledProcessError:
+		print("ERROR: [bcftools] not found.")
+
+	try:
+		location_bgzip = subprocess.check_output(['which', 'bgzip']).strip().decode('utf-8')
+		bgzip = os.path.abspath(location_bgzip)
+		# if args.verbose:
+		print(f"> bgzip location:", bgzip)
+		print(f"> bgzip version:", subprocess.check_output([bgzip, '--version']).strip().decode('utf-8'))
+	except subprocess.CalledProcessError:
+		print("ERROR: [bgzip] not found.")
+
+	try:
+		location_java = subprocess.check_output(['which', 'java']).strip().decode('utf-8')
+		java = os.path.abspath(location_java)
+		# if args.verbose:
+		print(f"> java location:", java)
+		print(f"> java version:", subprocess.check_output([java, '-version']).strip().decode('utf-8'))
+	except subprocess.CalledProcessError:
+		print("ERROR: [java] not found.")
+	
+	# beagle
+	beagle = os.path.abspath(args.app_path) + "/beagle.27Jul16.86a.jar"
+	# if args.verbose:
+	print(f"> beagle location:", beagle)
 
 	args.func(args)
 
 	logger.info("Success! See instructions above.")
 
-
-
+# Main function -- 2024-08-08
 if __name__ == "__main__":
 	main()
