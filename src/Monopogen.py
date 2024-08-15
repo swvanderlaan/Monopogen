@@ -107,9 +107,52 @@ def germline(args):
 			# Updated code -- 2024-08-08
 			# 1kGP_high_coverage_Illumina.chr6.filtered.SNV_INDEL_SV_phased_panel.vcf.gz - new data
 			imputation_vcf = args.imputation_panel + "1kGP_high_coverage_Illumina." + record[0] + ".filtered.SNV_INDEL_SV_phased_panel.vcf.gz"
-			cmd1 = samtools + " mpileup -b" + bam_filter + " -f "  + args.reference  + " -r " +  jobid + " -q 20 -Q 20 -t DP -d 10000000 -v "
-			cmd1 = cmd1 + " | " + bcftools + " view " + " | "  + bcftools  + " norm -m-both -f " + args.reference 
-			cmd1 = cmd1 + " | grep -v \"<X>\" | grep -v INDEL |" + bgzip +   " -c > " + args.out + "/germline/" +  jobid + ".gl.vcf.gz" 
+			
+			# ORIGINAL COMMANDS with OLD version of samtools
+			# cmd1 = samtools + " mpileup -b" + bam_filter + " -f "  + args.reference  + " -r " +  jobid + " -q 20 -Q 20 -t DP -d 10000000 -v "
+			# cmd1 = cmd1 + " | " + bcftools + " view " + " | "  + bcftools  + " norm -m-both -f " + args.reference 
+			# cmd1 = cmd1 + " | grep -v \"<X>\" | grep -v INDEL |" + bgzip +   " -c > " + args.out + "/germline/" +  jobid + ".gl.vcf.gz" 
+
+			# here is the command for germline variant calling
+			# /usr/local/bin/samtools mpileup \
+			# 	-b monopogen/Bam/chr20.filter.bam.lst \
+			# 	-f /Users/slaan3/PLINK/references/refgenie_genomes/alias/hg38/fasta/default/hg38.fa \
+			# 	-r chr20 -q 20 -Q 20 -t DP -d 10000000 -v | \
+			# 	/usr/local/bin/bcftools view  | \
+			# 	/usr/local/bin/bcftools norm -m-both \
+			# 	-f /Users/slaan3/PLINK/references/refgenie_genomes/alias/hg38/fasta/default/hg38.fa | \
+			# 	grep -v "<X>" | \
+			# 	grep -v INDEL | \
+			# 	/usr/local/bin/bgzip -c > monopogen/germline/chr20.gl.vcf.gz
+
+			# here is what the new command should look like:
+			# bcftools mpileup -b monopogen/Bam/chr20.filter.bam.lst -f /Users/slaan3/PLINK/references/refgenie_genomes/alias/hg38/fasta/default/hg38.fa -r chr20 -q 20 -Q 20 --annotate FORMAT/DP | bcftools view | bcftools norm -m-both | grep -v "<X>" | grep -v INDEL | bgzip -c > monopogen/germline/chr20.gl.vcf.gz
+
+			# NEW COMMANDS with bcftools
+			# https://samtools.github.io/bcftools/bcftools.html	
+			# https://www.biostars.org/p/425139/
+			# https://www.biostars.org/p/418738/
+			# mpileup a single region
+			# -b list of input BAM files
+			# -f reference sequence
+			# -r region to include
+			# -q base quality
+			# -Q mapping quality
+			# --annotate FORMAT/DP
+			# view to filter the output
+			# norm to normalize the output
+			# grep to remove unwanted lines
+			# bgzip to compress the output
+			# -c to write to stdout
+			# > to redirect to a file
+			# this can also be done using bcftools view -Oz -o output.vcf.gz
+			cmd1 = bcftools + " mpileup -b " + bam_filter + " -f "  + args.reference  + " -r " +  seq_id + " -q 20 -Q 20 --annotate FORMAT/DP "
+			cmd1 = cmd1 + " | " + bcftools + " view " + " | "  + bcftools  + " norm -m-both -f " + args.reference
+			# bgzip version; works, but I believe the below command is better
+			# cmd1 = cmd1 + " | grep -v \"<X>\" | grep -v INDEL |" + bgzip +   " -c > " + args.out + "/germline/" +  jobid + ".gl.vcf.gz" 
+			# bcftools version
+			cmd1 = cmd1 + " | grep -v \"<X>\" | grep -v INDEL | " + bcftools +   " view -Oz -o " + args.out + "/germline/" +  jobid + ".gl.vcf.gz" 
+
 			#cmd2 = bcftools + " view " +  out + "/germline/" +  jobid + ".gl.vcf.gz" + " -i 'FORMAT/DP>1' | " + bcftools + " call -cv  | " + bgzip +    "  -c > " +  args.out + "/SCvarCall/"  +  jobid + ".gt.vcf.gz"
 			cmd3 = java + " -Xmx20g -jar " + beagle +  " gl=" +  out + "/germline/" +  jobid + ".gl.vcf.gz"  +  " ref=" +  imputation_vcf   + "  chrom=" + record[0] + " out="   +  out + "/germline/" + jobid + ".gp " + "impute=false  modelscale=2  nthreads=24  gprobs=true  niterations=0"
 			
