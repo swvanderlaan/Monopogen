@@ -128,7 +128,7 @@ def germline(args):
 			# here is what the new command should look like:
 			# bcftools mpileup -b monopogen/Bam/chr20.filter.bam.lst -f /Users/slaan3/PLINK/references/refgenie_genomes/alias/hg38/fasta/default/hg38.fa -r chr20 -q 20 -Q 20 --annotate FORMAT/DP | bcftools view | bcftools norm -m-both | grep -v "<X>" | grep -v INDEL | bgzip -c > monopogen/germline/chr20.gl.vcf.gz
 
-			# NEW COMMANDS with bcftools
+			# NEW COMMANDS with bcftools -- 2024-08-15
 			# https://samtools.github.io/bcftools/bcftools.html	
 			# https://www.biostars.org/p/425139/
 			# https://www.biostars.org/p/418738/
@@ -366,6 +366,8 @@ def main():
 	# new code -- 2024-08-08
 	parser_germline.add_argument('-v', '--verbose', action='store_true',
 								help="Increase output verbosity")
+	parser_germline.add_argument('-d', '--debug', action='store_true',
+								help="For debugging, specifically for installed tools.")
 	parser_germline.set_defaults(func=germline)
 
 	# Add the subcommands for somatic -- 2024-08-08
@@ -392,6 +394,8 @@ def main():
 	# new code -- 2024-08-08
 	parser_somatic.add_argument('-v', '--verbose', action='store_true',
 								help="Increase output verbosity")
+	parser_somatic.add_argument('-d', '--debug', action='store_true',
+								help="For debugging, specifically for installed tools.")
 	parser_somatic.set_defaults(func=somatic)
 
 	args = parser.parse_args()
