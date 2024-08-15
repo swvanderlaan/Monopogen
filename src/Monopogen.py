@@ -146,7 +146,7 @@ def germline(args):
 			# -c to write to stdout
 			# > to redirect to a file
 			# this can also be done using bcftools view -Oz -o output.vcf.gz
-			cmd1 = bcftools + " mpileup -b " + bam_filter + " -f "  + args.reference  + " -r " +  seq_id + " -q 20 -Q 20 --annotate FORMAT/DP "
+			cmd1 = bcftools + " mpileup -b " + bam_filter + " -f "  + args.reference  + " -r " +  jobid + " -q 20 -Q 20 --annotate FORMAT/DP "
 			cmd1 = cmd1 + " | " + bcftools + " view " + " | "  + bcftools  + " norm -m-both -f " + args.reference
 			# bgzip version; works, but I believe the below command is better
 			# cmd1 = cmd1 + " | grep -v \"<X>\" | grep -v INDEL |" + bgzip +   " -c > " + args.out + "/germline/" +  jobid + ".gl.vcf.gz" 
