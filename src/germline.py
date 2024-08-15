@@ -111,7 +111,8 @@ def check_dependencies(args):
 	# OLD code
 	# programs_to_check = ("vcftools", "bgzip",  "bcftools", "beagle.08Feb22.fa4.jar", "beagle.27Jul16.86a.jar","samtools","picard.jar", "java")
 	# NEW code -- 2024-08-15
-	programs_to_check = ("vcftools", "bgzip",  "bcftools", "beagle.27Jul16.86a.jar", "samtools", "picard.jar", "java")
+	# these programs are installed via conda/mamba
+	programs_to_check = ("vcftools", "bgzip",  "bcftools", "samtools", "java")
 
 	for prog in programs_to_check:
 		# OLD code
@@ -120,6 +121,12 @@ def check_dependencies(args):
 		location_prog = subprocess.check_output(['which', prog]).strip().decode('utf-8')
 		out = os.popen("command -v {}".format(location_prog)).read()
 		assert out != "", "Program {} cannot be found!".format(prog)
+	# NEW code -- 2024-08-15
+	# these programs are downloaded via the Monopogen github repository
+	jars_to_check = ("beagle.27Jul16.86a.jar", "picard.jar")
+	for jar in jars_to_check:
+		out = os.popen("command -v {}".format(args.app_path + "/" + prog)).read()
+		assert out != "", "Java jar file {} cannot be found!".format(jar)
 
 #	python_pkgs_to_check = ("drmaa",)
 
