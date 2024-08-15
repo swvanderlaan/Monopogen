@@ -119,14 +119,18 @@ def check_dependencies(args):
 		# out = os.popen("command -v {}".format(args.app_path + "/" + prog)).read()
 		# NEW code -- 2024-08-15
 		location_prog = subprocess.check_output(['which', prog]).strip().decode('utf-8')
-		out = os.popen("command -v {}".format(location_prog)).read()
-		assert out != "", "Program {} cannot be found!".format(prog)
+		progr_out = os.popen("command -v {}".format(location_prog)).read()
+		if args.debug:
+			print(f"DEBUGGING: progr_out = {progr_out}")
+		assert progr_out != "", "Program {} cannot be found!".format(prog)
 	# NEW code -- 2024-08-15
 	# these programs are downloaded via the Monopogen github repository
 	jars_to_check = ("beagle.27Jul16.86a.jar", "picard.jar")
 	for jar in jars_to_check:
-		out = os.popen("command -v {}".format(args.app_path + "/" + jar)).read()
-		assert out != "", "Java jar file {} cannot be found!".format(jar)
+		jar_out = os.popen("command -v {}".format(args.app_path + "/" + jar)).read()
+		if args.debug:
+			print(f"DEBUGGING: jar_out = {jar_out}")
+		assert jar_out != "", "Java jar file {} cannot be found!".format(jar)
 
 #	python_pkgs_to_check = ("drmaa",)
 
