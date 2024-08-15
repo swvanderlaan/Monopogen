@@ -40,7 +40,7 @@ handler.setFormatter(logging.Formatter(
 	'[{asctime}] {levelname:8s} {filename} {message}', style='{'))
 logger.addHandler(handler)
 
-
+# Function to print the parameters
 def print_parameters_given(args):
 	logger.info("Parameters in effect:")
 	for arg in vars(args):
@@ -106,9 +106,12 @@ def validate_user_setting_germline(args):
 			record = line.strip().split(",")
 			assert len(record)==3 or len(record)==1, "Every line has to have exactly 3 comma-delimited columns chr1,1,100000 or chr1 (on the whole chromosome)! Line with region {} does not satisify this requiremnt!".format(line)
 
-
+# Function to check the dependencies
 def check_dependencies(args):
-	programs_to_check = ("vcftools", "bgzip",  "bcftools", "beagle.08Feb22.fa4.jar", "beagle.27Jul16.86a.jar","samtools","picard.jar", "java")
+	# OLD code
+	# programs_to_check = ("vcftools", "bgzip",  "bcftools", "beagle.08Feb22.fa4.jar", "beagle.27Jul16.86a.jar","samtools","picard.jar", "java")
+	# NEW code -- 2024-08-15
+	programs_to_check = ("vcftools", "bgzip",  "bcftools", "beagle.27Jul16.86a.jar", "samtools", "picard.jar", "java")
 
 	for prog in programs_to_check:
 		out = os.popen("command -v {}".format(args.app_path + "/" + prog)).read()
