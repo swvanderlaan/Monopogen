@@ -480,55 +480,55 @@ def main():
 	out = os.path.abspath(args.out)
 	
 	# Execute the shell command to find the location of samtools, bcftools, vcftools, bgzip, and java
-	# if args.verbose:
 	print(f"Checking the existence of the necessary tools.")
+	# samtools
 	try:
 		location_samtools = subprocess.check_output(['which', 'samtools']).strip().decode('utf-8')
 		# If you're on Windows, you may need to use where command instead of which.
 		# location = subprocess.check_output(['where', 'samtools']).strip().decode('utf-8')
 		samtools = os.path.abspath(location_samtools)
-		# if args.verbose:
-		print(f"> samtools location:", samtools)
+		if args.verbose:
+			print(f"> samtools location:", samtools)
 		if args.debug:
 			print(f"> samtools version:", subprocess.check_output([samtools, '--version']).strip().decode('utf-8'))
 	except subprocess.CalledProcessError:
 		print("ERROR: [samtools] not found.")
-
+	# bcftools
 	try:
 		location_bcftools = subprocess.check_output(['which', 'bcftools']).strip().decode('utf-8')
 		bcftools = os.path.abspath(location_bcftools)
-		# if args.verbose:
-		print(f"> bcftools location:", bcftools)
+		if args.verbose:
+			print(f"> bcftools location:", bcftools)
 		if args.debug:
 			print(f"> bcftools version:", subprocess.check_output([bcftools, '--version']).strip().decode('utf-8'))
 	except subprocess.CalledProcessError:
 		print("ERROR: [bcftools] not found.")
-
+	# vcftools
 	try:
 		location_vcftools = subprocess.check_output(['which', 'vcftools']).strip().decode('utf-8')
 		vcftools = os.path.abspath(location_vcftools)
-		# if args.verbose:
-		print(f"> vcftools location:", vcftools)
+		if args.verbose:
+			print(f"> vcftools location:", vcftools)
 		if args.debug:
 			print(f"> vcftools version:", subprocess.check_output([vcftools, '--version']).strip().decode('utf-8'))
 	except subprocess.CalledProcessError:
 		print("ERROR: [vcftools] not found.")
-
+	# bgzip
 	try:
 		location_bgzip = subprocess.check_output(['which', 'bgzip']).strip().decode('utf-8')
 		bgzip = os.path.abspath(location_bgzip)
-		# if args.verbose:
-		print(f"> bgzip location:", bgzip)
+		if args.verbose:
+			print(f"> bgzip location:", bgzip)
 		if args.debug:
 			print(f"> bgzip version:", subprocess.check_output([bgzip, '--version']).strip().decode('utf-8'))
 	except subprocess.CalledProcessError:
 		print("ERROR: [bgzip] not found.")
-
+	# java
 	try:
 		location_java = subprocess.check_output(['which', 'java']).strip().decode('utf-8')
 		java = os.path.abspath(location_java)
-		# if args.verbose:
-		print(f"> java location:", java)
+		if args.verbose:
+			print(f"> java location:", java)
 		if args.debug:
 			print(f"> java version:", subprocess.check_output([java, '-version']).strip().decode('utf-8'))
 	except subprocess.CalledProcessError:
@@ -536,8 +536,12 @@ def main():
 	
 	# beagle
 	beagle = os.path.abspath(args.app_path) + "/beagle.27Jul16.86a.jar"
-	# if args.verbose:
-	print(f"> beagle location:", beagle)
+	if args.verbose:
+		print(f"> beagle location:", beagle)
+	# beagle
+	picard = os.path.abspath(args.app_path) + "/picard.jar"
+	if args.verbose:
+		print(f"> picard location:", beagle)
 
 	args.func(args)
 
