@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+# Import the required libraries -- 2024-08-15
 import argparse
 import sys
 import os
@@ -18,7 +19,7 @@ from bamProcess import *
 import multiprocessing as mp
 from multiprocessing import Pool
 
-
+# Setting the library paths and other global variables -- 2024-08-15
 LIB_PATH = os.path.abspath(
 	os.path.join(os.path.dirname(os.path.realpath(__file__)), "pipelines/lib"))
 
@@ -27,10 +28,6 @@ if LIB_PATH not in sys.path:
 
 PIPELINE_BASEDIR = os.path.dirname(os.path.realpath(sys.argv[0]))
 CFG_DIR = os.path.join(PIPELINE_BASEDIR, "cfg")
-
-#import pipelines
-#from pipelines import get_cluster_cfgfile
-#from pipelines import PipelineHandler
 
 # global logger
 logger = logging.getLogger(__name__)
@@ -47,7 +44,7 @@ def print_parameters_given(args):
 		if arg=="func": continue
 		logger.info("--{} = [{}]".format(arg, vars(args)[arg]))
 
-
+# Function to validate the input sample list
 def validate_sample_list_file(args):
 	if args.check_hard_clipped:
 		out=os.popen("command -v bioawk").read().strip()
@@ -108,15 +105,11 @@ def validate_user_setting_germline(args):
 
 # Function to check the dependencies
 def check_dependencies(args):
-	# OLD code
-	# programs_to_check = ("vcftools", "bgzip",  "bcftools", "beagle.08Feb22.fa4.jar", "beagle.27Jul16.86a.jar","samtools","picard.jar", "java")
 	# NEW code -- 2024-08-15
 	# these programs are installed via conda/mamba
 	programs_to_check = ("vcftools", "bgzip",  "bcftools", "samtools", "java")
 
 	for prog in programs_to_check:
-		# OLD code
-		# out = os.popen("command -v {}".format(args.app_path + "/" + prog)).read()
 		# NEW code -- 2024-08-15
 		location_prog = subprocess.check_output(['which', prog]).strip().decode('utf-8')
 		progr_out = os.popen("command -v {}".format(location_prog)).read()
@@ -125,23 +118,14 @@ def check_dependencies(args):
 		assert progr_out != "", "Program {} cannot be found!".format(prog)
 	# NEW code -- 2024-08-15
 	# these programs are downloaded via the Monopogen github repository
-	jars_to_check = ("beagle.27Jul16.86a.jar", "picard.jar")
+	jars_to_check = ("beagle.jar", "picard.jar")
 	for jar in jars_to_check:
 		jar_path = os.path.join(args.app_path, jar)
 		if args.debug:
 			print(f"DEBUGGING: Checking JAR file at {jar_path}")
 		assert os.path.isfile(jar_path), "Java jar file {} cannot be found at path {}!".format(jar, jar_path)
 
-
-#	python_pkgs_to_check = ("drmaa",)
-
-#	for pkg in python_pkgs_to_check:
-#		out_pipe = os.popen('python -c "import {}"'.format(pkg))
-
-#		assert out_pipe.close() is None, "Python module {} has not been installed!".format(pkg)
-
-
-
+# Function to add the chr prefix to the bam file
 def addChr(in_bam, samtools):
 	# edit the sequence names for your output header
 	prefix = 'chr'

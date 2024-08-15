@@ -34,10 +34,6 @@ if LIB_PATH not in sys.path:
 PIPELINE_BASEDIR = os.path.dirname(os.path.realpath(sys.argv[0]))
 CFG_DIR = os.path.join(PIPELINE_BASEDIR, "cfg")
 
-#import pipelines
-#from pipelines import get_cluster_cfgfile
-#from pipelines import PipelineHandler
-
 # global logger
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -45,17 +41,6 @@ handler = logging.StreamHandler()
 handler.setFormatter(logging.Formatter(
 	'[{asctime}] {levelname:8s} {filename} {message}', style='{'))
 logger.addHandler(handler)
-
-# Function to handle logging and verbosity -- 2024-08-08
-# It seems you're adding a lot of verbosity checks for debugging purposes. 
-# It might be helpful to streamline this by creating a function to handle 
-# verbose printing to avoid repeating if args.verbose checks.
-# def log_info(message, verbose=False):
-#     if verbose:
-#         print(message)
-#     logger.info(message)
-# # Then use it like this:
-# log_info("Performing data preprocess before variant calling...", args.verbose)
 
 # Function to print errors if any exist -- 2024-08-08
 def error_check(all, output, step):
@@ -82,10 +67,7 @@ def germline(args):
 
 	# Create necessary directories -- 2024-08-15
 	out = args.out
-	# OLD code
-	# os.system("mkdir -p " + out )
-	# os.system("mkdir -p " + out +  "/germline")
-	# os.system("mkdir -p " + out +  "/Script")
+	# NEW code -- 2024-08-15
 	if args.out:
 		os.makedirs(args.out, exist_ok=True)
 		if args.verbose:
@@ -116,35 +98,13 @@ def germline(args):
 				for s in p:
 					N_sample = N_sample + 1
 
-			# Original code
-			# CCDG_14151_B01_GRM_WGS_2020-08-05_chr1.filtered.shapeit2-duohmm-phased.vcf.gz - old data
-			# imputation_vcf = args.imputation_panel + "CCDG_14151_B01_GRM_WGS_2020-08-05_" + record[0] + ".filtered.shapeit2-duohmm-phased.vcf.gz"
-			# Updated code -- 2024-08-08
+			# NEW code -- 2024-08-08
 			# 1kGP_high_coverage_Illumina.chr6.filtered.SNV_INDEL_SV_phased_panel.vcf.gz - new data
 			imputation_vcf = args.imputation_panel + "1kGP_high_coverage_Illumina." + record[0] + ".filtered.SNV_INDEL_SV_phased_panel.vcf.gz"
 			if args.verbose:
 				print(f"  - Checking the imputation panel file: [{imputation_vcf}].")
 			if args.verbose:
 				print(f"  - Starting germline variant calling for region {jobid}.")
-			# ORIGINAL COMMANDS with OLD version of samtools
-			# cmd1 = samtools + " mpileup -b" + bam_filter + " -f "  + args.reference  + " -r " +  jobid + " -q 20 -Q 20 -t DP -d 10000000 -v "
-			# cmd1 = cmd1 + " | " + bcftools + " view " + " | "  + bcftools  + " norm -m-both -f " + args.reference 
-			# cmd1 = cmd1 + " | grep -v \"<X>\" | grep -v INDEL |" + bgzip +   " -c > " + args.out + "/germline/" +  jobid + ".gl.vcf.gz" 
-
-			# here is the command for germline variant calling
-			# /usr/local/bin/samtools mpileup \
-			# 	-b monopogen/Bam/chr20.filter.bam.lst \
-			# 	-f /Users/slaan3/PLINK/references/refgenie_genomes/alias/hg38/fasta/default/hg38.fa \
-			# 	-r chr20 -q 20 -Q 20 -t DP -d 10000000 -v | \
-			# 	/usr/local/bin/bcftools view  | \
-			# 	/usr/local/bin/bcftools norm -m-both \
-			# 	-f /Users/slaan3/PLINK/references/refgenie_genomes/alias/hg38/fasta/default/hg38.fa | \
-			# 	grep -v "<X>" | \
-			# 	grep -v INDEL | \
-			# 	/usr/local/bin/bgzip -c > monopogen/germline/chr20.gl.vcf.gz
-
-			# here is what the new command should look like:
-			# bcftools mpileup -b monopogen/Bam/chr20.filter.bam.lst -f /Users/slaan3/PLINK/references/refgenie_genomes/alias/hg38/fasta/default/hg38.fa -r chr20 -q 20 -Q 20 --annotate FORMAT/DP | bcftools view | bcftools norm -m-both | grep -v "<X>" | grep -v INDEL | bgzip -c > monopogen/germline/chr20.gl.vcf.gz
 
 			# NEW COMMANDS with bcftools -- 2024-08-15
 			# https://samtools.github.io/bcftools/bcftools.html	
@@ -302,9 +262,7 @@ def preProcess(args):
 	# Create necessary directories -- 2024-08-08
 	if args.verbose:
 		print(f"\n> Checking the existence of the necessary output directories. If they do not exist, they will be created.")
-	# out = args.out
-	# os.system("mkdir -p " + out )
-	# os.system("mkdir -p " + out +  "/Bam")
+	# NEW code -- 2024-08-15
 	if args.out:
 		os.makedirs(args.out, exist_ok=True)
 		if args.verbose:
@@ -465,15 +423,6 @@ def main():
 	if args.subcommand == "somatic":
 		args.out = args.input_folder
 
-	# Original code
-	# global out, samtools, bcftools, bgzip, java, beagle 
-	# out = os.path.abspath(args.out)
-	# samtools  = os.path.abspath(args.app_path) + "/samtools" 
-	# bcftools = os.path.abspath(args.app_path) + "/bcftools"
-	# bgzip = os.path.abspath(args.app_path) + "/bgzip"
-	# java =  "java"
-	# beagle = os.path.abspath(args.app_path) + "/beagle.27Jul16.86a.jar"
-
 	# Updated code -- 2024-08-08
 	# set paths for tools
 	global out, samtools, bcftools, vcftools, bgzip, java, beagle 
@@ -535,7 +484,7 @@ def main():
 		print("ERROR: [java] not found.")
 	
 	# beagle
-	beagle = os.path.abspath(args.app_path) + "/beagle.27Jul16.86a.jar"
+	beagle = os.path.abspath(args.app_path) + "/beagle.jar"
 	if args.verbose:
 		print(f"> beagle location:", beagle)
 	# beagle
