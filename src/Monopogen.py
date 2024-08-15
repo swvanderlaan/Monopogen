@@ -79,14 +79,29 @@ def germline(args):
 
 	logger.info("Checking dependencies...")
 	check_dependencies(args)
-	out = args.out
-	os.system("mkdir -p " + out )
-	
-	os.system("mkdir -p " + out +  "/germline")
-	os.system("mkdir -p " + out +  "/Script")
 
+	# Create necessary directories -- 2024-08-15
+	out = args.out
+	# OLD code
+	# os.system("mkdir -p " + out )
+	# os.system("mkdir -p " + out +  "/germline")
+	# os.system("mkdir -p " + out +  "/Script")
+	if args.out:
+		os.makedirs(args.out, exist_ok=True)
+		if args.verbose:
+			print(f"  - Created output directory: {args.out}")
+		os.makedirs(os.path.join(args.out, 'germline'), exist_ok=True)
+		if args.verbose:
+			print(f"  - Created directory to store germline (known) variant data: {os.path.join(args.out, 'germline')}")
+		os.makedirs(os.path.join(args.out, 'Script'), exist_ok=True)
+		if args.verbose:
+			print(f"  - Created directory to store scripts: {os.path.join(args.out, 'Script')}")
+	else:
+		print("Output directory not specified!")
 
 	# check whether region files were set correctly 
+	if args.verbose:
+		print(f"Checking the region file...")
 	joblst = []
 	with open(args.region) as f_in:
 		for line in f_in:
@@ -107,7 +122,9 @@ def germline(args):
 			# Updated code -- 2024-08-08
 			# 1kGP_high_coverage_Illumina.chr6.filtered.SNV_INDEL_SV_phased_panel.vcf.gz - new data
 			imputation_vcf = args.imputation_panel + "1kGP_high_coverage_Illumina." + record[0] + ".filtered.SNV_INDEL_SV_phased_panel.vcf.gz"
-			
+			if args.verbose:
+				print(f"Checking the imputation panel file: {imputation_vcf}")
+
 			# ORIGINAL COMMANDS with OLD version of samtools
 			# cmd1 = samtools + " mpileup -b" + bam_filter + " -f "  + args.reference  + " -r " +  jobid + " -q 20 -Q 20 -t DP -d 10000000 -v "
 			# cmd1 = cmd1 + " | " + bcftools + " view " + " | "  + bcftools  + " norm -m-both -f " + args.reference 
@@ -153,17 +170,45 @@ def germline(args):
 			# bcftools version
 			cmd1 = cmd1 + " | grep -v \"<X>\" | grep -v INDEL | " + bcftools +   " view -Oz -o " + args.out + "/germline/" +  jobid + ".gl.vcf.gz" 
 
+			# NEW code -- 2024-08-15
+			if args.verbose:
+				print(f"Running germline variant calling for region {jobid}...")
+			if args.debug:
+				print(f"DEBUGGING: Command to run: {cmd1}")
+
 			#cmd2 = bcftools + " view " +  out + "/germline/" +  jobid + ".gl.vcf.gz" + " -i 'FORMAT/DP>1' | " + bcftools + " call -cv  | " + bgzip +    "  -c > " +  args.out + "/SCvarCall/"  +  jobid + ".gt.vcf.gz"
 			cmd3 = java + " -Xmx20g -jar " + beagle +  " gl=" +  out + "/germline/" +  jobid + ".gl.vcf.gz"  +  " ref=" +  imputation_vcf   + "  chrom=" + record[0] + " out="   +  out + "/germline/" + jobid + ".gp " + "impute=false  modelscale=2  nthreads=24  gprobs=true  niterations=0"
 			
+			# NEW code -- 2024-08-15
+			if args.verbose:
+				print(f"Running germline variant imputation for region {jobid}...")
+			if args.debug:
+				print(f"DEBUGGING: Command to run: {cmd3}")
 			cmd5 = java + " -Xmx20g -jar " + beagle +  " gt=" +  out + "/germline/" +  jobid + ".germline.vcf"  +  " ref=" +  imputation_vcf    +  "  chrom=" + record[0]  + " out="   +  out + "/germline/" + jobid+ ".phased " + "impute=false  modelscale=2  nthreads=24  gprobs=true  niterations=0"
 			cmd5 = cmd5 + "\n" + "rm " +  out + "/germline/" +  jobid + ".germline.vcf" 
+			
+			# NEW code -- 2024-08-15
+			if args.verbose:
+				print(f"Running germline variant phasing for region {jobid}...")
+			if args.debug:
+				print(f"DEBUGGING: Command to run: {cmd5}")
+
+			# NEW code -- 2024-08-15
+			# write the commands to a shell script
+			if args.verbose:
+				print(f"Writing the commands to a shell script...")
 			f_out = open(out + "/Script/runGermline_" +  jobid +  ".sh","w")
 			if args.step == "varScan" or args.step == "all":
+				# NEW code -- 2024-08-15
+				if args.verbose:
+					print(f"Writing the variant calling command to the shell script...")
 				f_out.write(cmd1 + "\n")
 			#NSNV = withSNVs(out + "/germline/" +  jobid + ".gl.vcf.gz")
 				#f_out.write(cmd2 + "\n")
 			if args.step == "varImpute" or args.step == "all":
+				# NEW code -- 2024-08-15
+				if args.verbose:
+					print(f"Writing the variant imputation command to the shell script...")
 				#if NSNV>100:
 					f_out.write(cmd3 + "\n")
 					if N_sample == 1:
@@ -172,10 +217,18 @@ def germline(args):
 						cmd4 = "zless -S " +  out + "/germline/" + jobid + ".gp.vcf.gz   > " +  out + "/germline/" + jobid + ".germline.vcf"
 					f_out.write(cmd4 + "\n")
 			if args.step == "varPhasing" or args.step == "all":
+				# NEW code -- 2024-08-15
+				if args.verbose:
+					print(f"Writing the variant phasing command to the shell script...")
 				#if NSNV>100:
 					f_out.write(cmd5 + "\n")
 			
+			# NEW code -- 2024-08-15
+			# append jobs to the job list
+			if args.verbose:
+				print(f"Appending the job " + jobid + " to the job list...")
 			joblst.append("bash " + out + "/Script/runGermline_" +  jobid +  ".sh")
+	# close the file
 	f_out.close()
 
 	if not args.norun == "TRUE":
