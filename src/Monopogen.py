@@ -422,10 +422,10 @@ def main():
 
 	# Updated code -- 2024-08-08
 	# set paths for tools
-	global out, samtools, bcftools, bgzip, java, beagle 
+	global out, samtools, bcftools, vcftools, bgzip, java, beagle 
 	out = os.path.abspath(args.out)
 	
-	# Execute the shell command to find the location of samtools, bcftools, bgzip, and java
+	# Execute the shell command to find the location of samtools, bcftools, vcftools, bgzip, and java
 	# if args.verbose:
 	print(f"Checking the existence of the necessary tools.")
 	try:
@@ -449,6 +449,16 @@ def main():
 			print(f"> bcftools version:", subprocess.check_output([bcftools, '--version']).strip().decode('utf-8'))
 	except subprocess.CalledProcessError:
 		print("ERROR: [bcftools] not found.")
+
+	try:
+		location_vcftools = subprocess.check_output(['which', 'vcftools']).strip().decode('utf-8')
+		vcftools = os.path.abspath(location_vcftools)
+		# if args.verbose:
+		print(f"> vcftools location:", vcftools)
+		if args.debug:
+			print(f"> vcftools version:", subprocess.check_output([vcftools, '--version']).strip().decode('utf-8'))
+	except subprocess.CalledProcessError:
+		print("ERROR: [vcftools] not found.")
 
 	try:
 		location_bgzip = subprocess.check_output(['which', 'bgzip']).strip().decode('utf-8')
