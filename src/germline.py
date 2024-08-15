@@ -117,7 +117,7 @@ def check_dependencies(args):
 		# OLD code
 		# out = os.popen("command -v {}".format(args.app_path + "/" + prog)).read()
 		# NEW code -- 2024-08-15
-		location_prog = subprocess.check_output(['which', 'vcftools']).strip().decode('utf-8')
+		location_prog = subprocess.check_output(['which', prog]).strip().decode('utf-8')
 		out = os.popen("command -v {}".format(location_prog)).read()
 		assert out != "", "Program {} cannot be found!".format(prog)
 
