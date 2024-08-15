@@ -101,7 +101,7 @@ def germline(args):
 
 	# check whether region files were set correctly 
 	if args.verbose:
-		print(f"Checking the region file...")
+		print(f"  - Checking the region file [{args.region}].")
 	joblst = []
 	with open(args.region) as f_in:
 		for line in f_in:
@@ -123,8 +123,9 @@ def germline(args):
 			# 1kGP_high_coverage_Illumina.chr6.filtered.SNV_INDEL_SV_phased_panel.vcf.gz - new data
 			imputation_vcf = args.imputation_panel + "1kGP_high_coverage_Illumina." + record[0] + ".filtered.SNV_INDEL_SV_phased_panel.vcf.gz"
 			if args.verbose:
-				print(f"Checking the imputation panel file: {imputation_vcf}")
-
+				print(f"  - Checking the imputation panel file: [{imputation_vcf}].")
+			if args.verbose:
+				print(f"  - Starting germline variant calling for region {jobid}.")
 			# ORIGINAL COMMANDS with OLD version of samtools
 			# cmd1 = samtools + " mpileup -b" + bam_filter + " -f "  + args.reference  + " -r " +  jobid + " -q 20 -Q 20 -t DP -d 10000000 -v "
 			# cmd1 = cmd1 + " | " + bcftools + " view " + " | "  + bcftools  + " norm -m-both -f " + args.reference 
@@ -172,7 +173,7 @@ def germline(args):
 
 			# NEW code -- 2024-08-15
 			if args.verbose:
-				print(f"Running germline variant calling for region {jobid}...")
+				print(f"    * germline variant calling")
 			if args.debug:
 				print(f"DEBUGGING: Command to run: {cmd1}")
 
@@ -181,7 +182,7 @@ def germline(args):
 			
 			# NEW code -- 2024-08-15
 			if args.verbose:
-				print(f"Running germline variant imputation for region {jobid}...")
+				print(f"    * germline variant imputation")
 			if args.debug:
 				print(f"DEBUGGING: Command to run: {cmd3}")
 			cmd5 = java + " -Xmx20g -jar " + beagle +  " gt=" +  out + "/germline/" +  jobid + ".germline.vcf"  +  " ref=" +  imputation_vcf    +  "  chrom=" + record[0]  + " out="   +  out + "/germline/" + jobid+ ".phased " + "impute=false  modelscale=2  nthreads=24  gprobs=true  niterations=0"
@@ -189,26 +190,26 @@ def germline(args):
 			
 			# NEW code -- 2024-08-15
 			if args.verbose:
-				print(f"Running germline variant phasing for region {jobid}...")
+				print(f"    * germline variant phasing")
 			if args.debug:
 				print(f"DEBUGGING: Command to run: {cmd5}")
 
 			# NEW code -- 2024-08-15
 			# write the commands to a shell script
 			if args.verbose:
-				print(f"Writing the commands to a shell script...")
+				print(f"  - Writing the commands to a shell script.")
 			f_out = open(out + "/Script/runGermline_" +  jobid +  ".sh","w")
 			if args.step == "varScan" or args.step == "all":
 				# NEW code -- 2024-08-15
 				if args.verbose:
-					print(f"Writing the variant calling command to the shell script...")
+					print(f"    * variant calling command")
 				f_out.write(cmd1 + "\n")
 			#NSNV = withSNVs(out + "/germline/" +  jobid + ".gl.vcf.gz")
 				#f_out.write(cmd2 + "\n")
 			if args.step == "varImpute" or args.step == "all":
 				# NEW code -- 2024-08-15
 				if args.verbose:
-					print(f"Writing the variant imputation command to the shell script...")
+					print(f"    * variant imputation command")
 				#if NSNV>100:
 					f_out.write(cmd3 + "\n")
 					if N_sample == 1:
@@ -219,14 +220,14 @@ def germline(args):
 			if args.step == "varPhasing" or args.step == "all":
 				# NEW code -- 2024-08-15
 				if args.verbose:
-					print(f"Writing the variant phasing command to the shell script...")
+					print(f"    * variant phasing command")
 				#if NSNV>100:
 					f_out.write(cmd5 + "\n")
 			
 			# NEW code -- 2024-08-15
 			# append jobs to the job list
 			if args.verbose:
-				print(f"Appending the job " + jobid + " to the job list...")
+				print(f"  - Appending the job " + jobid + " to the job list...")
 			joblst.append("bash " + out + "/Script/runGermline_" +  jobid +  ".sh")
 	# close the file
 	f_out.close()
