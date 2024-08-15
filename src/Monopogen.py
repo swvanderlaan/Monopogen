@@ -46,6 +46,17 @@ handler.setFormatter(logging.Formatter(
 	'[{asctime}] {levelname:8s} {filename} {message}', style='{'))
 logger.addHandler(handler)
 
+# Function to handle logging and verbosity -- 2024-08-08
+# It seems you're adding a lot of verbosity checks for debugging purposes. 
+# It might be helpful to streamline this by creating a function to handle 
+# verbose printing to avoid repeating if args.verbose checks.
+# def log_info(message, verbose=False):
+#     if verbose:
+#         print(message)
+#     logger.info(message)
+# # Then use it like this:
+# log_info("Performing data preprocess before variant calling...", args.verbose)
+
 # Function to print errors if any exist -- 2024-08-08
 def error_check(all, output, step):
 		job_fail = 0
@@ -130,9 +141,7 @@ def germline(args):
 			result = pool.map(runCMD, joblst)
 	#error_check(all = region_lst, output = result, step = "germline module")
 
-
-
-
+# Function to validate user settings for somatic variant calling -- 2024-08-08
 def somatic(args):
 	
 	validate_user_setting_somatic(args)
@@ -271,7 +280,7 @@ def main():
 		help='Preprocess of bam files including removing reads with high alignment mismatches. The maximum mismatch is set by default at 3.',
 		formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 	parser_preProcess.add_argument('-b', '--bamFile', required=True,
-								help="The bam file for the study sample, the bam file should be sorted. If there are multiple samples, each row with each sample. Require.") 
+								help="The comma-separated listf of bam-files for the study sample. The first column should have the sampleID, and the second column the location of the corresponding bam-file. The bam-files should be sorted and indexed. If there are multiple samples, each row with each sample. Required.") 
 	parser_preProcess.add_argument('-o', '--out', required= False,
 								help="The output directory. The output will be saved in the output directory. Required.")
 	parser_preProcess.add_argument('-a', '--app-path', required=True,
