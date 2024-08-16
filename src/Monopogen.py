@@ -484,13 +484,13 @@ def main():
 		print("ERROR: [java] not found.")
 	
 	# beagle
-	beagle = os.path.abspath(args.app_path) + "/beagle.jar"
+	location_beagle = os.path.abspath(args.app_path) + "/beagle.jar"
 	if args.verbose:
-		print(f"> beagle location:", beagle)
-	# beagle
-	picard = os.path.abspath(args.app_path) + "/picard.jar"
+		print(f"> beagle location:", location_beagle)
+	# picard
+	location_picard = os.path.abspath(args.app_path) + "/picard.jar"
 	if args.verbose:
-		print(f"> picard location:", beagle)
+		print(f"> picard location:", location_picard)
 
 	args.func(args)
 
