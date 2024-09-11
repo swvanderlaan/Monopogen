@@ -485,10 +485,12 @@ def main():
 	
 	# beagle
 	location_beagle = os.path.abspath(args.app_path) + "/beagle.jar"
+	beagle = os.path.abspath(location_beagle)
 	if args.verbose:
 		print(f"> beagle location:", location_beagle)
 	# picard
 	location_picard = os.path.abspath(args.app_path) + "/picard.jar"
+	picard = os.path.abspath(location_picard)
 	if args.verbose:
 		print(f"> picard location:", location_picard)
 
