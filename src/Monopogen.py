@@ -145,8 +145,8 @@ def germline(args):
 				print(f"    * germline variant imputation")
 			if args.debug:
 				print(f"DEBUGGING: Command to run: {cmd3}")
-			cmd5 = java + " -Xmx20g -jar " + beagle +  " gt=" +  out + "/germline/" +  jobid + ".germline.vcf"  +  " ref=" +  imputation_vcf    +  "  chrom=" + record[0]  + " out="   +  out + "/germline/" + jobid+ ".phased " + "impute=false  modelscale=2  nthreads=4  gprobs=true  niterations=0"
-			cmd5 = cmd5 + "\n" + "rm " +  out + "/germline/" +  jobid + ".germline.vcf" 
+			cmd5 = java + " -Xmx20g -jar " + beagle +  " gt=" +  out + "/germline/" +  jobid + ".germline.vcf"  +  " ref=" +  imputation_vcf  +  "  chrom=" + record[0]  + " out="   +  out + "/germline/" + jobid+ ".phased " + "impute=false  modelscale=2  nthreads=4  gprobs=true  niterations=0"
+			# cmd5 = cmd5 + "\n" + "rm -v " +  out + "/germline/" +  jobid + ".germline.vcf" 
 			
 			# NEW code -- 2024-08-15
 			if args.verbose:
@@ -196,7 +196,7 @@ def germline(args):
 		with Pool(processes=args.nthreads) as pool:
 			print(joblst)
 			result = pool.map(runCMD, joblst)
-	#error_check(all = region_lst, output = result, step = "germline module")
+	# error_check(all = region_lst, output = result, step = "germline module")
 
 # Function to validate user settings for somatic variant calling -- 2024-08-08
 def somatic(args):
